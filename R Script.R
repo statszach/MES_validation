@@ -7,6 +7,8 @@ library(readxl)
 library(lavaan)
 library(mirt)
 library(psych)
+library(rsample)
+library(gtsummary)
 
 ####################
 ## Importing Data ##
@@ -90,6 +92,22 @@ table(Tidy3$University)
 
 # 1   2   3   4 
 # 49 111 538  56 
+
+
+items <- c("SocialEvents"    ,
+"Family"          ,
+"Tech"            ,
+"Entertainment"   ,
+"Drugs"           ,
+"Coffee"          ,
+"Fashion"         ,
+"HealthPromotion2",
+"PersonalCare"    ,
+"Housing"         ,
+"Transportation"  ,
+"CredCard"        ,
+"School"          ,
+"Charity"         )
 
 ############
 ## MANOVA ##
@@ -186,7 +204,7 @@ describeBy(Tidy3, group = "University")
 # Charity            14 56 1.55 0.85      1    1.41 0.00   1   5     4  1.66     2.97 0.11
 
 
-Tidy4 <- Tidy3 %>% filter(University != 3)
+Tidy4 <- Tidy3 %>% filter(University != 2)
 
 manova2<- manova(cbind(SocialEvents    ,
                        Family          ,
@@ -208,3 +226,208 @@ summary.aov(manova2)
 
 ## Still different ##
 ## Hmmm ##
+
+## Decided to use just university 3 for a random split, then fit the models into the other three samples afterwards. ##
+
+#########################
+## DATA TRANSFORMATION ##
+#########################
+
+## Selecting Just Uni 3
+
+Uni3 <- Tidy3 %>% filter(University == 3) %>% select(-University, -MES_scored)
+
+## Splitting into random parts
+
+Uni3_Split <- initial_split(Uni3)
+
+EFA_Sample <- testing(Uni3_Split)
+IRT_Sample <- training(Uni3_Split)
+
+#########
+## EFA ##
+#########
+
+VSS(EFA_Sample, plot = F, fm = "wls")
+
+# Very Simple Structure
+# Call: vss(x = x, n = n, rotate = rotate, diagonal = diagonal, fm = fm, 
+#           n.obs = n.obs, plot = plot, title = title, use = use, cor = cor)
+# VSS complexity 1 achieves a maximimum of 0.69  with  2  factors
+# VSS complexity 2 achieves a maximimum of 0.81  with  5  factors
+# 
+# The Velicer MAP achieves a minimum of 0.02  with  2  factors 
+
+fa(EFA_Sample, nfactors = 2, fm = "wls", rotate = "Promax")
+#Drop Personal Care and Charity (loadings below < |.40|)
+
+EFA_Sample2 <- EFA_Sample %>% select(-PersonalCare, -Charity)
+
+fa(EFA_Sample2, nfactors = 2, fm = "wls", rotate = "Promax")
+#Retain remaining items
+
+# Factor Analysis using method =  wls
+# Call: fa(r = EFA_Sample2, nfactors = 2, rotate = "Promax", fm = "wls")
+# Standardized loadings (pattern matrix) based upon correlation matrix
+# WLS1  WLS2   h2   u2 com
+# SocialEvents      0.75 -0.20 0.54 0.46 1.1
+# Family           -0.13  0.48 0.23 0.77 1.1
+# Tech              0.52  0.13 0.31 0.69 1.1
+# Entertainment     0.76  0.00 0.57 0.43 1.0
+# Drugs             0.67 -0.13 0.43 0.57 1.1
+# Coffee            0.58  0.09 0.36 0.64 1.0
+# Fashion           0.64  0.18 0.48 0.52 1.2
+# HealthPromotion2 -0.05  0.56 0.30 0.70 1.0
+# Housing          -0.15  0.70 0.48 0.52 1.1
+# Transportation    0.13  0.50 0.29 0.71 1.1
+# CredCard          0.06  0.72 0.54 0.46 1.0
+# School            0.04  0.56 0.33 0.67 1.0
+# 
+# WLS1 WLS2
+# SS loadings           2.65 2.23
+# Proportion Var        0.22 0.19
+# Cumulative Var        0.22 0.41
+# Proportion Explained  0.54 0.46
+# Cumulative Proportion 0.54 1.00
+# 
+# With factor correlations of 
+# WLS1 WLS2
+# WLS1 1.00 0.19
+# WLS2 0.19 1.00
+# 
+# Mean item complexity =  1.1
+# Test of the hypothesis that 2 factors are sufficient.
+# 
+# The degrees of freedom for the null model are  66  and the objective function was  3.57 with Chi Square of  458.13
+# The degrees of freedom for the model are 43  and the objective function was  0.48 
+# 
+# The root mean square of the residuals (RMSR) is  0.05 
+# The df corrected root mean square of the residuals is  0.06 
+# 
+# The harmonic number of observations is  134 with the empirical chi square  44.11  with prob <  0.42 
+# The total number of observations was  134  with Likelihood Chi Square =  60.39  with prob <  0.041 
+# 
+# Tucker Lewis Index of factoring reliability =  0.931
+# RMSEA index =  0.06  and the 90 % confidence intervals are  0.012 0.086
+# BIC =  -150.21
+# Fit based upon off diagonal values = 0.97
+# Measures of factor score adequacy             
+# WLS1 WLS2
+# Correlation of (regression) scores with factors   0.92 0.89
+# Multiple R square of scores with factors          0.84 0.80
+# Minimum correlation of possible factor scores     0.68 0.59
+
+#######################
+## CFA in other Unis ##
+#######################
+
+Uni1 <- Tidy3 %>% filter(University == 1) 
+Uni2 <- Tidy3 %>% filter(University == 2) 
+Uni4 <- Tidy3 %>% filter(University == 4) 
+
+CFA_Model <- 'f1 =~ SocialEvents + Tech + Entertainment + Drugs + Coffee + Fashion
+              f2 =~ Family + HealthPromotion2 + Housing + Transportation + CredCard + School
+              f1 ~~ f2'
+
+Uni1CFA <- cfa(model = CFA_Model, data = Uni1)
+
+summary(Uni1CFA, fit.measures = T)
+
+Uni2CFA <- cfa(model = CFA_Model, data = Uni2)
+
+summary(Uni2CFA, fit.measures = T)
+
+Uni3CFA <- cfa(model = CFA_Model, data = IRT_Sample)
+
+summary(Uni3CFA, fit.measures = T)
+
+Uni4CFA <- cfa(model = CFA_Model, data = Uni4)
+
+summary(Uni4CFA, fit.measures = T)
+
+#########
+## IRT ##
+#########
+
+Uni1IRT <- cfa(model = CFA_Model, data = Uni1,  std.lv=TRUE, 
+               ordered =c("SocialEvents"    ,
+                          "Family"          ,
+                          "Tech"            ,
+                          "Entertainment"   ,
+                          "Drugs"           ,
+                          "Coffee"          ,
+                          "Fashion"         ,
+                          "HealthPromotion2",
+                          "Housing"         ,
+                          "Transportation"  ,
+                          "CredCard"        ,
+                          "School"          ),
+               parameterization = "theta")
+
+summary(Uni1IRT, fit.measures = T)
+
+Uni2IRT <- cfa(model = CFA_Model, data = Uni2,  std.lv=TRUE, 
+               ordered =c("SocialEvents"    ,
+                          "Family"          ,
+                          "Tech"            ,
+                          "Entertainment"   ,
+                          "Drugs"           ,
+                          "Coffee"          ,
+                          "Fashion"         ,
+                          "HealthPromotion2",
+                          "Housing"         ,
+                          "Transportation"  ,
+                          "CredCard"        ,
+                          "School"          ),
+               parameterization = "theta")
+
+summary(Uni2IRT, fit.measures = T)
+
+
+
+Uni3IRT <- cfa(model = CFA_Model, data = IRT_Sample,  std.lv=TRUE, 
+               ordered =c("SocialEvents"    ,
+                          "Family"          ,
+                          "Tech"            ,
+                          "Entertainment"   ,
+                          "Drugs"           ,
+                          "Coffee"          ,
+                          "Fashion"         ,
+                          "HealthPromotion2",
+                          "Housing"         ,
+                          "Transportation"  ,
+                          "CredCard"        ,
+                          "School"          ),
+               parameterization = "theta")
+
+summary(Uni3IRT, fit.measures = T)
+
+Uni4IRT <- cfa(model = CFA_Model, data = Uni4,  std.lv=TRUE, 
+               ordered =c("SocialEvents"    ,
+                          "Family"          ,
+                          "Tech"            ,
+                          "Entertainment"   ,
+                          "Drugs"           ,
+                          "Coffee"          ,
+                          "Fashion"         ,
+                          "HealthPromotion2",
+                          "Housing"         ,
+                          "Transportation"  ,
+                          "CredCard"        ,
+                          "School"          ),
+               parameterization = "theta")
+
+summary(Uni4IRT, fit.measures = T)
+
+
+IRT_model <- 'F1 = SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion
+              F2 = Family, HealthPromotion2, Housing, Transportation, CredCard, School
+              COV = F1*F2'
+
+mirt_model <- mirt.model(IRT_model, itemnames = IRT_Sample)
+
+Uni3IRT_mirt <- mirt(IRT_Sample, IRT_model, itemtype = "graded")
+
+M2(Uni3IRT_mirt)
+
+coef(Uni3IRT_mirt)
