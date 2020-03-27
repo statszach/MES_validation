@@ -497,22 +497,24 @@ coef(Uni2IRT_mirt_f2)
 ###
 
 Uni4 <- Uni4 %>% select(-University)
+Uni4F1 <- Uni4 %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion)
+Uni4F2 <- Uni4 %>% select(Family, HealthPromotion2, Housing, Transportation, CredCard, School)
 
-mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni4)
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni4F1)
 
-Uni4IRT_mirt_f1 <- mirt(Uni4, IRT_model_f1, itemtype = "graded")
+Uni4IRT_mirt_f1 <- mirt(Uni4F1, IRT_model_f1, itemtype = "graded")
 
-M2(Uni4IRT_mirt_f1)
+M2(Uni4IRT_mirt_f1, type = "C2")
 
-coef(Uni4IRT_mirt_f1)
+coef(Uni4IRT_mirt_f1, simplify = T, IRTParam = T)
 
-mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = IRT_Sample)
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = Uni4F2)
 
-Uni4IRT_mirt_f2 <- mirt(Uni4, IRT_model_f2, itemtype = "graded")
+Uni4IRT_mirt_f2 <- mirt(Uni4F2, IRT_model_f2, itemtype = "graded")
 
-M2(Uni4IRT_mirt_f2)
+M2(Uni4IRT_mirt_f2, type = "C2")
 
-coef(Uni4IRT_mirt_f2)
+coef(Uni4IRT_mirt_f2, simplify = T, IRTParam = T)
 
 ###
 
@@ -534,3 +536,13 @@ mirt_allunif2 <- mirt(AllUniF2, IRT_model_f2, itemtype = "graded")
 M2(mirt_allunif2, type = "C2")
 
 coef(mirt_allunif2, simplify = T)
+
+
+####
+
+AllUniF1DIF <- Tidy4 %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion, University)
+IRT_model_f1 <- 'F1 = SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion'
+IRT_model_f2 <- 'F2 = Family, HealthPromotion2, Housing, Transportation, CredCard, School'
+
+groupf1 <- as.factor(AllUniF1DIF$University)
+F1DIF <- multipleGroup(AllUniF1DIF, IRT_model_f1, groupf1)
