@@ -420,6 +420,8 @@ Uni4IRT <- cfa(model = CFA_Model, data = Uni4,  std.lv=TRUE,
 summary(Uni4IRT, fit.measures = T)
 
 
+IRT_Sample <- IRT_Sample %>% select(-PersonalCare, -Charity)
+
 IRT_model <- 'F1 = SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion
               F2 = Family, HealthPromotion2, Housing, Transportation, CredCard, School
               COV = F1*F2'
@@ -431,3 +433,104 @@ Uni3IRT_mirt <- mirt(IRT_Sample, IRT_model, itemtype = "graded")
 M2(Uni3IRT_mirt)
 
 coef(Uni3IRT_mirt)
+
+
+IRT_model_f1 <- 'F1 = SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion'
+IRT_model_f2 <- 'F2 = Family, HealthPromotion2, Housing, Transportation, CredCard, School'
+
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = IRT_Sample)
+
+Uni3IRT_mirt_f1 <- mirt(IRT_Sample, IRT_model_f1, itemtype = "graded")
+
+M2(Uni3IRT_mirt_f1)
+
+coef(Uni3IRT_mirt_f1)
+
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = IRT_Sample)
+
+Uni3IRT_mirt_f2 <- mirt(IRT_Sample, IRT_model_f2, itemtype = "graded")
+
+M2(Uni3IRT_mirt_f2)
+
+coef(Uni3IRT_mirt_f2)
+
+####
+
+Uni1 <- Uni1 %>% select(-University)
+
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni1)
+
+Uni1IRT_mirt_f1 <- mirt(Uni1, IRT_model_f1, itemtype = "graded")
+
+M2(Uni1IRT_mirt_f1)
+
+coef(Uni1IRT_mirt_f1)
+
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = Uni1)
+
+Uni1IRT_mirt_f2 <- mirt(Uni1, IRT_model_f2, itemtype = "graded")
+
+M2(Uni1IRT_mirt_f2)
+
+coef(Uni1IRT_mirt_f2)
+
+###
+
+Uni2 <- Uni2 %>% select(-University)
+
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni2)
+
+Uni2IRT_mirt_f1 <- mirt(Uni2, IRT_model_f1, itemtype = "graded")
+
+M2(Uni2IRT_mirt_f1)
+
+coef(Uni2IRT_mirt_f1)
+
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = Uni2)
+
+Uni2IRT_mirt_f2 <- mirt(Uni2, IRT_model_f2, itemtype = "graded")
+
+M2(Uni2IRT_mirt_f2)
+
+coef(Uni2IRT_mirt_f2)
+
+###
+
+Uni4 <- Uni4 %>% select(-University)
+
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni4)
+
+Uni4IRT_mirt_f1 <- mirt(Uni4, IRT_model_f1, itemtype = "graded")
+
+M2(Uni4IRT_mirt_f1)
+
+coef(Uni4IRT_mirt_f1)
+
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = IRT_Sample)
+
+Uni4IRT_mirt_f2 <- mirt(Uni4, IRT_model_f2, itemtype = "graded")
+
+M2(Uni4IRT_mirt_f2)
+
+coef(Uni4IRT_mirt_f2)
+
+###
+
+AllUniF1 <- Tidy4 %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion)
+AllUniF2 <- Tidy4 %>% select(Family, HealthPromotion2, Housing, Transportation, CredCard, School)
+
+
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = AllUniF1)
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = AllUniF2)
+
+mirt_allunif1 <- mirt(AllUniF1, IRT_model_f1, itemtype = "graded")
+
+M2(mirt_allunif1, type = "C2")
+
+coef(mirt_allunif2, simplify = T)
+
+mirt_allunif2 <- mirt(AllUniF2, IRT_model_f2, itemtype = "graded")
+
+M2(mirt_allunif2, type = "C2")
+
+coef(mirt_allunif2, simplify = T)
