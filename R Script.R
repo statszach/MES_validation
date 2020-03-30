@@ -42,6 +42,16 @@ Tidy1 <- MoneyExpenditure_Complete %>% rename(.,SocialEvents = `Social events (s
 
 Tidy2 <- Tidy1 %>% filter(`Since you have been in college, have you ever run out of money and were unable to buy food?` == 1)
 
+## Rename validation variables
+
+Tidy3 <- Tidy2 %>% rename(., WorriedRunOut = `I worried whether my food would run out before I got money to buy more.`,
+                          DidntLast = `The food that I bought just didn't last, and I didn't have money to get more.`)
+
+## Recode validation variables
+
+Transform1 <- Tidy3 %>% mutate(RunOut2Cat = dplyr::if_else(WorriedRunOut >=4, 1, 0),
+                               DidntLast2cat = dplyr::if_else(DidntLast >=4, 1, 0))
+
 # Making a list of the MES items to use in later analyses
 # Health promotion 1 was dropped from the analyses since it was not asked at all universities. See email from JM on 24 Mar 20
 
@@ -438,21 +448,25 @@ coef(Uni3IRT_mirt)
 IRT_model_f1 <- 'F1 = SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion'
 IRT_model_f2 <- 'F2 = Family, HealthPromotion2, Housing, Transportation, CredCard, School'
 
-mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = IRT_Sample)
+IRT_Sample_F1 <- IRT_Sample %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion)
 
-Uni3IRT_mirt_f1 <- mirt(IRT_Sample, IRT_model_f1, itemtype = "graded")
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = IRT_Sample_F1)
 
-M2(Uni3IRT_mirt_f1)
+Uni3IRT_mirt_f1 <- mirt(IRT_Sample_F1, IRT_model_f1, itemtype = "graded")
 
-coef(Uni3IRT_mirt_f1)
+M2(Uni3IRT_mirt_f1, type = "C2")
 
-mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = IRT_Sample)
+coef(Uni3IRT_mirt_f1, simplify = T, IRTParam = T)
 
-Uni3IRT_mirt_f2 <- mirt(IRT_Sample, IRT_model_f2, itemtype = "graded")
+IRT_Sample_F2 <- IRT_Sample %>% select(Family, HealthPromotion2, Housing, Transportation, CredCard, School)
 
-M2(Uni3IRT_mirt_f2)
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = IRT_Sample_F2)
 
-coef(Uni3IRT_mirt_f2)
+Uni3IRT_mirt_f2 <- mirt(IRT_Sample_F2, IRT_model_f2, itemtype = "graded")
+
+M2(Uni3IRT_mirt_f2, type = "C2")
+
+coef(Uni3IRT_mirt_f2, simplify = T, IRTParam = T)
 
 ####
 
@@ -496,25 +510,25 @@ coef(Uni2IRT_mirt_f2)
 
 ###
 
-Uni4 <- Uni4 %>% select(-University)
-Uni4F1 <- Uni4 %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion)
-Uni4F2 <- Uni4 %>% select(Family, HealthPromotion2, Housing, Transportation, CredCard, School)
+Uni2 <- Uni2 %>% select(-University)
+Uni2F1 <- Uni2 %>% select(SocialEvents, Tech, Entertainment, Drugs, Coffee, Fashion)
+Uni2F2 <- Uni2 %>% select(Family, HealthPromotion2, Housing, Transportation, CredCard, School)
 
-mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni4F1)
+mirt_model_f1 <- mirt.model(IRT_model_f1, itemnames = Uni2F1)
 
-Uni4IRT_mirt_f1 <- mirt(Uni4F1, IRT_model_f1, itemtype = "graded")
+Uni2IRT_mirt_f1 <- mirt(Uni2F1, IRT_model_f1, itemtype = "graded")
 
-M2(Uni4IRT_mirt_f1, type = "C2")
+M2(Uni2IRT_mirt_f1, type = "C2")
 
-coef(Uni4IRT_mirt_f1, simplify = T, IRTParam = T)
+coef(Uni2IRT_mirt_f1, simplify = T, IRTParam = T)
 
-mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = Uni4F2)
+mirt_model_f2 <- mirt.model(IRT_model_f2, itemnames = Uni2F2)
 
-Uni4IRT_mirt_f2 <- mirt(Uni4F2, IRT_model_f2, itemtype = "graded")
+Uni2IRT_mirt_f2 <- mirt(Uni2F2, IRT_model_f2, itemtype = "graded")
 
-M2(Uni4IRT_mirt_f2, type = "C2")
+M2(Uni2IRT_mirt_f2, type = "C2")
 
-coef(Uni4IRT_mirt_f2, simplify = T, IRTParam = T)
+coef(Uni2IRT_mirt_f2, simplify = T, IRTParam = T)
 
 ###
 
