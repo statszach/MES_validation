@@ -56,7 +56,62 @@ Transform1 <- Tidy3 %>% mutate(RunOut2Cat = dplyr::if_else(WorriedRunOut >=4, 1,
 ## After discussing with JM, decided to do EFA/IRT on Uni 3, and then use Uni 2 as an independent
 ## sample. 
 
+
+
+manova2<- manova(cbind(SocialEvents    ,
+                       Family          ,
+                       Tech            ,
+                       Entertainment   ,
+                       Drugs           ,
+                       Coffee          ,
+                       Fashion         ,
+                       HealthPromotion2,
+                       PersonalCare    ,
+                       Housing         ,
+                       Transportation  ,
+                       CredCard        ,
+                       School          ,
+                       Charity         ) ~ University, data = Transform1)
+
+
+
+
 ## Filtering by Unis
+
+uni23only <- Transform1 %>% filter(University == 3 | University == 2)
+
+manova3<- manova(cbind(SocialEvents    ,
+                       Family          ,
+                       Tech            ,
+                       Entertainment   ,
+                       Drugs           ,
+                       Coffee          ,
+                       Fashion         ,
+                       HealthPromotion2,
+                       PersonalCare    ,
+                       Housing         ,
+                       Transportation  ,
+                       CredCard        ,
+                       School          ,
+                       Charity         ) ~ University, data = uni23only)
+
+summary.aov(manova3)
+
+#############
+## Table 1 ##
+#############
+
+options(gtsummary.print_engine = "kable")
+
+table1a <- uni23only %>% 
+  select(`How old are you?`, `What is your ethnicity?`, `What is your gender identity?`,
+         `Do you live on campus or off campus?`, `How often do you prepare meals at home?`,
+         `How often do you cook meals from scratch or fresh ingredients?`, University) %>%  
+  tbl_summary(by = University,
+              statistic = list(all_continuous() ~ "{mean} ({sd})",
+                               all_categorical() ~ "{n} ({p}%)"))
+
+
 
 Uni3Only <- Transform1 %>% filter(University == 3)
 Uni2Only <- Transform1 %>% filter(University == 2)
